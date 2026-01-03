@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v1
+      with:
+        pwsh: true
+
+    - name: Install PSScriptAnalyzer
+      run: Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+
+    - name: Run PSScriptAnalyzer
+      run: |
+        $results = Invoke-ScriptAnalyzer -Path .\scripts\*.ps1 -Recurse
+        if ($results) {
+          $results | Format-Table -AutoSize
+          exit 1
+        } else {
+          Write-Host "No issues found."
+        }
